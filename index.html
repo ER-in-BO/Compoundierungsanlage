@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Tablet Startbildschirm</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #caf0f8 0%, #ade8f4 50%, #90e0ef 100%);
+            width: 100vw;
+            height: 100vh;
+            overflow: visible;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Decorative background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -20%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle, rgba(3, 173, 238, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            left: -15%;
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, rgba(144, 224, 239, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+
+        /* Status Bar */
+        .status-bar {
+            height: 30px;
+            background: rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: #333;
+            font-size: 13px;
+            font-weight: 500;
+            position: relative;
+            z-index: 10;
+        }
+
+        .status-left {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .status-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .battery {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .battery-icon {
+            width: 24px;
+            height: 12px;
+            border: 2px solid #333;
+            border-radius: 2px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 1px;
+        }
+
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: 3px;
+            width: 2px;
+            height: 4px;
+            background: #333;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .battery-fill {
+            width: 80%;
+            height: 100%;
+            background: #333;
+            border-radius: 1px;
+        }
+
+        /* Main Content Area */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            overflow-y: auto;
+            position: relative;
+            z-index: 1;
+            z-index: 1;
+        }
+
+        .time-widget {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .current-time {
+            font-size: 72px;
+            font-weight: 300;
+            color: #03ADEE;
+            text-shadow: 0 2px 10px rgba(3, 173, 238, 0.2);
+            letter-spacing: 2px;
+        }
+
+        .current-date {
+            font-size: 18px;
+            color: #666;
+            margin-top: 10px;
+            font-weight: 400;
+        }
+
+        /* App Grid */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 35px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            text-decoration: none;
+        }
+
+        /* Hidden state for locked buttons */
+        .app-icon.locked {
+            display: none;
+        }
+
+        .app-icon:active {
+            transform: scale(0.95);
+        }
+
+        .icon-container {
+            width: 100px;
+            height: 100px;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin-bottom: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .app-icon:hover .icon-container {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Specific App Styles - Enneatech Blue Theme */
+        .app-compoundierung .icon-container {
+            background: linear-gradient(135deg, #03ADEE 0%, #0088b8 100%);
+        }
+
+        .app-compoundierung .icon-symbol {
+            color: #a8e6ff;
+        }
+
+        .app-video1 .icon-container {
+            background: linear-gradient(135deg, #00c8e1 0%, #00a8c8 100%);
+        }
+
+        .app-video3 .icon-container {
+            background: linear-gradient(135deg, #0088b8 0%, #006890 100%);
+        }
+
+        .app-label {
+            color: #333;
+            font-size: 13px;
+            font-weight: 500;
+            text-align: center;
+            max-width: 120px;
+            overflow: visible;
+            word-wrap: break-word;
+            line-height: 1.3;
+        }
+
+        /* Badge for notifications */
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff3b30;
+            color: white;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Video Modal */
+        .video-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .video-modal.active {
+            display: flex;
+        }
+
+        .video-container {
+            width: 90%;
+            max-width: 1200px;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .video-player {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-title {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .close-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        /* Compoundierung Modal */
+        .compoundierung-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            z-index: 1000;
+        }
+
+        .compoundierung-modal.active {
+            display: block;
+        }
+
+        .compoundierung-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .compoundierung-close-button {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: none;
+            color: #333;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .compoundierung-close-button:hover {
+            background: rgba(0, 0, 0, 0.3);
+            transform: rotate(90deg);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .current-time {
+                font-size: 56px;
+            }
+            
+            .app-grid {
+                gap: 25px;
+            }
+            
+            .icon-container {
+                width: 80px;
+                height: 80px;
+                font-size: 40px;
+            }
+        }
+
+        /* Icon Symbols using CSS */
+        .icon-symbol {
+            font-style: normal;
+            font-weight: 500;
+        }
+
+        /* Reset Button */
+        .reset-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color: rgba(50, 50, 50, 0.9);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .reset-button:hover {
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            color: rgba(50, 50, 50, 1);
+            transform: scale(1.05);
+        }
+
+        .reset-button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Reset Button -->
+    <button class="reset-button" onclick="resetProgress()" title="Fortschritt zurücksetzen">
+        <span>⟲</span>
+        <span>Neustart</span>
+    </button>
+
+    <!-- Home Screen -->
+    <div class="home-screen" id="homeScreen">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <span id="status-time">12:34</span>
+            </div>
+            <div class="status-right">
+                <span>Wi-Fi</span>
+                <div class="battery">
+                    <span>78%</span>
+                    <div class="battery-icon">
+                        <div class="battery-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Time Widget -->
+            <div class="time-widget">
+                <div class="current-time" id="main-time">12:34</div>
+                <div class="current-date" id="main-date">Montag, 27. Januar 2026</div>
+            </div>
+
+            <!-- App Grid -->
+            <div class="app-grid">
+                <!-- Compoundierung App -->
+                <div class="app-icon app-compoundierung" id="compoundierungBtn" onclick="openCompoundierung()">
+                    <div class="icon-container">
+                        <span class="icon-symbol">🌀</span>
+                        <div class="badge" id="compoundierungBadge">!</div>
+                    </div>
+                    <span class="app-label">Compoundierung</span>
+                </div>
+
+                <!-- Video 1 -->
+                <div class="app-icon app-video1" onclick="openVideo('video1')">
+                    <div class="icon-container">
+                        <span class="icon-symbol">▶️</span>
+                    </div>
+                    <span class="app-label">Enneatech</span>
+                </div>
+
+                <!-- Video 3 -->
+                <div class="app-icon app-video3 locked" id="video3Btn" onclick="openVideo('video3')">
+                    <div class="icon-container">
+                        <span class="icon-symbol">▶️</span>
+                    </div>
+                    <span class="app-label">Mechanische Prüfung</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Modal -->
+    <div class="video-modal" id="videoModal">
+        <button class="close-button" onclick="closeVideo()">✕</button>
+        <div class="video-title" id="videoTitle">Video</div>
+        <div class="video-container">
+            <video class="video-player" id="videoPlayerVideo" 
+                   controls 
+                   autoplay>
+                <source src="" type="video/mp4">
+                Dein Browser unterstützt das Video-Tag nicht.
+            </video>
+        </div>
+    </div>
+
+    <!-- Compoundierung Modal -->
+    <div class="compoundierung-modal" id="compoundierungModal">
+        <button class="compoundierung-close-button" onclick="closeCompoundierung()">✕</button>
+        <iframe class="compoundierung-iframe" id="compoundierungIframe" src=""></iframe>
+    </div>
+
+    <script>
+        // Update time display
+        function updateTime() {
+            const now = new Date();
+            
+            // Status bar time
+            const statusTime = now.toLocaleTimeString('de-DE', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            document.getElementById('status-time').textContent = statusTime;
+            
+            // Main time
+            const mainTime = now.toLocaleTimeString('de-DE', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            document.getElementById('main-time').textContent = mainTime;
+            
+            // Date
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            const dateStr = now.toLocaleDateString('de-DE', options);
+            document.getElementById('main-date').textContent = dateStr;
+        }
+
+        // Update time immediately and every second
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Video Sources - Direkte MP4 Links von GitHub
+        const videoSources = {
+            video1: 'https://er-in-bo.github.io/Compoundierungsanlage/Testvideo.mp4',
+            video3: 'https://er-in-bo.github.io/Compoundierungsanlage/Testvideo.mp4'
+        };
+
+        const videoTitles = {
+            video1: 'Enneatech',
+            video3: 'Mechanische Prüfung'
+        };
+
+        function openVideo(videoId) {
+            const modal = document.getElementById('videoModal');
+            const videoPlayer = document.getElementById('videoPlayerVideo');
+            const videoTitle = document.getElementById('videoTitle');
+            
+            // Set video source
+            videoPlayer.src = videoSources[videoId];
+            videoPlayer.load();
+            videoTitle.textContent = videoTitles[videoId];
+            
+            // Show modal
+            modal.classList.add('active');
+        }
+
+        function unlockVideo3() {
+            const video3Btn = document.getElementById('video3Btn');
+            const badge = document.getElementById('compoundierungBadge');
+            
+            video3Btn.classList.remove('locked');
+            
+            // Hide the notification badge when Compoundierung is completed
+            if (badge) {
+                badge.style.display = 'none';
+            }
+            
+            localStorage.setItem('compoundierungCompleted', 'true');
+        }
+
+        // Listen for messages from Compoundierung iframe
+        window.addEventListener('message', function(event) {
+            // Check if message is about success/completion
+            if (event.data.type === 'COMPOUNDIERUNG_SUCCESS' || event.data.type === 'COMPOUNDIERUNG_COMPLETED') {
+                unlockVideo3();
+            }
+        });
+
+        // Check saved progress on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('compoundierungCompleted') === 'true') {
+                unlockVideo3();
+            }
+        });
+
+        function closeVideo() {
+            const modal = document.getElementById('videoModal');
+            const videoPlayer = document.getElementById('videoPlayerVideo');
+            
+            // Pause and reset video
+            videoPlayer.pause();
+            videoPlayer.currentTime = 0;
+            videoPlayer.src = '';
+            
+            // Hide modal
+            modal.classList.remove('active');
+        }
+
+        // Close modal when clicking outside the video
+        document.getElementById('videoModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeVideo();
+            }
+        });
+
+        // Compoundierung App Functions
+        // URL to your Compoundierung HTML file
+        const compoundierungUrl = 'https://er-in-bo.github.io/Compoundierungsanlage/Compoundierung.html';
+        let compoundierungLoaded = false;
+
+        function openCompoundierung() {
+            const modal = document.getElementById('compoundierungModal');
+            const iframe = document.getElementById('compoundierungIframe');
+            
+            // Load the HTML file only on first open
+            if (!compoundierungLoaded) {
+                iframe.src = compoundierungUrl;
+                compoundierungLoaded = true;
+            }
+            
+            // Show modal
+            modal.classList.add('active');
+            
+            // Unmute audio after iframe is ready
+            setTimeout(() => {
+                iframe.contentWindow.postMessage({ type: 'UNMUTE_AUDIO' }, '*');
+            }, 500);
+        }
+
+        function closeCompoundierung() {
+            const modal = document.getElementById('compoundierungModal');
+            const iframe = document.getElementById('compoundierungIframe');
+            
+            // Mute audio
+            iframe.contentWindow.postMessage({ type: 'MUTE_AUDIO' }, '*');
+            
+            // Just hide modal - don't reset iframe.src
+            // This keeps the state of the application
+            modal.classList.remove('active');
+        }
+
+        // Prevent zoom on double-tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Reset Progress Function
+        function resetProgress() {
+            if (confirm('Möchtest du wirklich den gesamten Fortschritt zurücksetzen?\n\nVideo 3 wird wieder gesperrt und das Badge erscheint wieder.')) {
+                // Clear localStorage
+                localStorage.removeItem('compoundierungCompleted');
+                
+                // Lock Video 3 again
+                document.getElementById('video3Btn').classList.add('locked');
+                
+                // Show badge again
+                const badge = document.getElementById('compoundierungBadge');
+                if (badge) {
+                    badge.style.display = 'block';
+                }
+                
+                // Reload page to reset everything
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
